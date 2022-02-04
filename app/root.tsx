@@ -8,6 +8,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useCatch,
   useLoaderData,
 } from "remix";
 import { AuthProvider } from "./components/AuthData";
@@ -29,7 +30,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return user;
 };
 
-export default function App() {
+const Document: React.FC = ({ children }) => {
   const user = useLoaderData<User | null>();
 
   return (
@@ -53,7 +54,7 @@ export default function App() {
       <body className="bg-black text-white font-inter">
         <AuthProvider user={user}>
           <NavBar />
-          <Outlet />
+          {children}
           <Footer />
         </AuthProvider>
         <ScrollRestoration />
@@ -61,5 +62,26 @@ export default function App() {
         {process.env.NODE_ENV === "development" && <LiveReload />}
       </body>
     </html>
+  );
+};
+
+export default function App() {
+  return (
+    <Document>
+      <Outlet />
+    </Document>
+  );
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+  return (
+    <Document>
+      <main className="h-screen w-full flex justify-center items-center">
+        <h1 className="text-white text-4xl font-medium">
+          {caught.status} {caught.statusText}
+        </h1>
+      </main>
+    </Document>
   );
 }

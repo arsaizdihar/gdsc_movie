@@ -1,4 +1,4 @@
-import { Movie as IMovie, Movie } from "@prisma/client";
+import { Movie } from "@prisma/client";
 import classNames from "classnames";
 import { Link } from "react-router-dom";
 import {
@@ -8,15 +8,18 @@ import {
   useFetcher,
   useLoaderData,
 } from "remix";
+import { useMe } from "~/components/AuthData";
 import { getUserId } from "~/utils/auth.server";
 import { db } from "~/utils/db.server";
 
 type PageData = {
-  movies: Array<
-    IMovie & {
-      isWishlist: Boolean;
-    }
-  >;
+  movies: Array<{
+    id: number;
+    title: string;
+    overview: string;
+    backdropPath: string;
+    isWishlist: boolean;
+  }>;
   page: number;
   totalPages: number;
   pageNumbers: Array<Number>;
@@ -33,6 +36,12 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     orderBy: { order: "asc" },
     skip: (page - 1) * 18,
     take: 18,
+    select: {
+      id: true,
+      title: true,
+      overview: true,
+      backdropPath: true,
+    },
   });
   const moviesCount = await db.movie.count();
   const userId = await getUserId(request);
@@ -169,11 +178,8 @@ export default function Index() {
   );
 }
 
-const Movie: React.FC<
-  IMovie & {
-    isWishlist: Boolean;
-  }
-> = (props) => {
+const Movie: React.FC<PageData["movies"][0]> = (props) => {
+  const user = useMe();
   const fetcher = useFetcher();
   return (
     <div className="bg-slate-800 h-full w-full px-4 py-3 rounded-md sm:hover:scale-105 duration-200">
@@ -199,48 +205,50 @@ const Movie: React.FC<
         <Link to={String(props.id)} className="px-2 py-1 bg-gray-500">
           More details
         </Link>
-        <button
-          className={classNames(
-            "px-2 py-1 flex items-center font-medium rounded-md ml-4",
-            props.isWishlist ? "bg-red-600" : "bg-green-600"
-          )}
-        >
-          {props.isWishlist ? (
-            <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 inline-block"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </>
-          ) : (
-            <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 inline-block"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-            </>
-          )}
-        </button>
+        {user && (
+          <button
+            className={classNames(
+              "px-2 py-1 flex items-center font-medium rounded-md ml-4",
+              props.isWishlist ? "bg-red-600" : "bg-green-600"
+            )}
+          >
+            {props.isWishlist ? (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 inline-block"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 inline-block"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+              </>
+            )}
+          </button>
+        )}
       </fetcher.Form>
     </div>
   );
