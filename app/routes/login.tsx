@@ -8,7 +8,7 @@ import {
   useActionData,
   useTransition,
 } from "remix";
-import { createUserSession, getUserId, login } from "~/utils/auth.server";
+import { getNewJWTCookie, getUserId, login } from "~/utils/auth.server";
 import { loginSchema } from "~/utils/validators.server";
 
 export const meta: MetaFunction = () => {
@@ -26,7 +26,8 @@ export const action: ActionFunction = async ({ request }) => {
   if (!user) {
     return { error: true };
   } else {
-    return await createUserSession(user.id, "/");
+    const cookie = await getNewJWTCookie(user);
+    return redirect("/", { headers: { "Set-Cookie": cookie } });
   }
 };
 

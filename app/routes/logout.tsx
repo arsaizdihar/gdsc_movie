@@ -3,7 +3,7 @@ import { redirect } from "remix";
 import { logout } from "~/utils/auth.server";
 
 export const action: ActionFunction = async ({ request }) => {
-  return logout(request);
+  return logout();
 };
 
 export const loader: LoaderFunction = async () => {

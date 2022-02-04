@@ -7,7 +7,7 @@ import {
   redirect,
   useActionData,
 } from "remix";
-import { createUserSession, getUserId, register } from "~/utils/auth.server";
+import { getNewJWTCookie, getUserId, register } from "~/utils/auth.server";
 import { registerSchema, toErrorObject } from "~/utils/validators.server";
 
 export const meta: MetaFunction = () => {
@@ -21,7 +21,10 @@ export const action: ActionFunction = async ({ request }) => {
     return toErrorObject(validation.error);
   }
   const user = await register(validation.value);
-  if (user) return await createUserSession(user.id, "/");
+  if (user) {
+    const cookie = await getNewJWTCookie(user);
+    return redirect("/", { headers: { "Set-Cookie": cookie } });
+  }
   return { email: "Email already in use." };
 };
 

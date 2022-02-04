@@ -1,7 +1,11 @@
+import { User } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import cookieLib from "cookie";
+import jwt from "jsonwebtoken";
 import { redirect } from "remix";
+import { jwtCookie } from "./cookie.server";
 import { db } from "./db.server";
-import { storage } from "./session.server";
+
 type LoginForm = {
   email: string;
   password: string;
@@ -44,23 +48,26 @@ export async function login({ email, password }: LoginForm) {
   return user;
 }
 
-export function getUserSession(request: Request) {
-  return storage.getSession(request.headers.get("Cookie"));
-}
-
 export async function getUserId(request: Request) {
-  const session = await getUserSession(request);
-  const userId = session.get("userId");
-  if (!userId || typeof userId !== "string") return null;
-  return userId;
+  const cookie = request.headers.get("Cookie");
+
+  const token = await jwtCookie.parse(cookie);
+  if (typeof token !== "string") {
+    return null;
+  }
+
+  const decoded = extractJWT(token);
+  if (decoded === null) {
+    return null;
+  }
+  return decoded.id as string;
 }
 
 export async function requireUserId(
   request: Request,
   redirectTo: string = new URL(request.url).pathname
 ) {
-  const session = await getUserSession(request);
-  const userId = session.get("userId");
+  const userId = getUserId(request);
   if (!userId || typeof userId !== "string") {
     const searchParams = new URLSearchParams([["redirectTo", redirectTo]]);
     throw redirect(`/login?${searchParams}`);
@@ -70,35 +77,46 @@ export async function requireUserId(
 
 export async function getUser(request: Request) {
   const userId = await getUserId(request);
-  if (typeof userId !== "string") {
+  if (!userId) {
     return null;
   }
-
   try {
     const user = await db.user.findUnique({
       where: { id: userId },
     });
     return user;
   } catch {
-    throw logout(request);
+    throw logout();
   }
 }
 
-export async function logout(request: Request) {
-  const session = await storage.getSession(request.headers.get("Cookie"));
+export async function logout() {
   return redirect("/login", {
     headers: {
-      "Set-Cookie": await storage.destroySession(session),
+      "Set-Cookie": cookieLib.serialize(jwtCookie.name, "", {
+        expires: new Date(0),
+      }),
     },
   });
 }
 
-export async function createUserSession(userId: string, redirectTo: string) {
-  const session = await storage.getSession();
-  session.set("userId", userId);
-  return redirect(redirectTo, {
-    headers: {
-      "Set-Cookie": await storage.commitSession(session),
-    },
-  });
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is not set");
 }
+
+export const getNewJWTCookie = async (user: User) => {
+  const token = jwt.sign({ id: user.id }, JWT_SECRET, {
+    algorithm: "HS256",
+    expiresIn: "7d",
+  });
+  return await jwtCookie.serialize(token);
+};
+
+export const extractJWT = (token: string) => {
+  const decoded = jwt.verify(token, JWT_SECRET);
+  if (typeof decoded === "object") {
+    return decoded;
+  }
+  return null;
+};
