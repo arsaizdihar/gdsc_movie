@@ -79,9 +79,9 @@ const Login = () => {
         <button
           type="submit"
           className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-sm font-medium disabled:bg-gray-600"
-          disabled={transition.state !== "idle"}
+          disabled={transition.state === "submitting"}
         >
-          {transition.state === "idle" ? "Login" : "Loading..."}
+          {transition.state === "submitting" ? "Loading..." : "Login"}
         </button>
       </Form>
     </main>

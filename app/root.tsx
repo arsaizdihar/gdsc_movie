@@ -11,6 +11,7 @@ import {
   useLoaderData,
 } from "remix";
 import { AuthProvider } from "./components/AuthData";
+import Footer from "./components/Footer";
 import NavBar from "./components/NavBar";
 import styles from "./styles/app.css";
 import { getUser } from "./utils/auth.server";
@@ -53,6 +54,7 @@ export default function App() {
         <AuthProvider user={user}>
           <NavBar />
           <Outlet />
+          <Footer />
         </AuthProvider>
         <ScrollRestoration />
         <Scripts />
