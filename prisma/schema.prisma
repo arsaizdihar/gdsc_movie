@@ -12,26 +12,41 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  email    String @unique
-  name     String
-  password String
+  id        String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  email     String     @unique
+  name      String
+  password  String
+  wishlists Wishlist[]
 }
 
 model Movie {
-  dbId             String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  id               Int      @unique
-  order            Int      @default(1)
+  dbId             String     @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id               Int        @unique
+  order            Int        @default(1)
   title            String
   originalTitle    String
   originalLanguage String
   backdropPath     String
-  adult            Boolean  @default(false)
+  adult            Boolean    @default(false)
   overview         String
   popularity       Float
   voteCount        Int
   voteAverage      Float
   releaseDate      DateTime
+  wishlists        Wishlist[]
 
   @@index([order])
+}
+
+model Wishlist {
+  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  movieId   Int
+  movie     Movie    @relation(fields: [movieId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, movieId])
+  @@index([createdAt])
+  @@index([userId])
 }

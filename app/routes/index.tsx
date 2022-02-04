@@ -1,11 +1,22 @@
 import { Movie as IMovie, Movie } from "@prisma/client";
 import classNames from "classnames";
 import { Link } from "react-router-dom";
-import { LoaderFunction, redirect, useLoaderData } from "remix";
+import {
+  ActionFunction,
+  LoaderFunction,
+  redirect,
+  useFetcher,
+  useLoaderData,
+} from "remix";
+import { getUserId } from "~/utils/auth.server";
 import { db } from "~/utils/db.server";
 
 type PageData = {
-  movies: IMovie[];
+  movies: Array<
+    IMovie & {
+      isWishlist: Boolean;
+    }
+  >;
   page: number;
   totalPages: number;
   pageNumbers: Array<Number>;
@@ -24,6 +35,15 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     take: 18,
   });
   const moviesCount = await db.movie.count();
+  const userId = await getUserId(request);
+  let wishlists: Array<{ id: string; movieId: Number }> = [];
+  if (userId) {
+    wishlists = await db.wishlist.findMany({
+      where: { userId, movieId: { in: movies.map((m) => m.id) } },
+      orderBy: { movie: { order: "asc" } },
+      select: { id: true, movieId: true },
+    });
+  }
 
   if (movies.length === 0) {
     return redirect("/");
@@ -34,12 +54,47 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     .map((_, i) => page + i - 2)
     .filter((x) => x > 0 && x <= totalPages);
   const data: PageData = {
-    movies,
+    movies: movies.map((m) => ({
+      ...m,
+      isWishlist: wishlists && !!wishlists?.find((w) => w.movieId === m.id),
+    })),
     page,
     totalPages,
     pageNumbers,
   };
   return data;
+};
+
+export const action: ActionFunction = async ({ request }) => {
+  const formData = await request.formData();
+  const action = formData.get("_action");
+  const movieId = Number(formData.get("movieId"));
+  if (isNaN(movieId)) {
+    return { error: true };
+  }
+  const userId = await getUserId(request);
+  if (!userId) return;
+  switch (action) {
+    case "create":
+      try {
+        await db.wishlist.create({ data: { movieId, userId } });
+        break;
+      } catch (error) {
+        return { error: true };
+      }
+    case "delete":
+      try {
+        await db.wishlist.delete({
+          where: { userId_movieId: { movieId, userId } },
+        });
+      } catch (error) {
+        return { error: true };
+      }
+      break;
+    default:
+      break;
+  }
+  return { success: true };
 };
 
 export default function Index() {
@@ -114,9 +169,14 @@ export default function Index() {
   );
 }
 
-const Movie: React.FC<IMovie> = (props) => {
+const Movie: React.FC<
+  IMovie & {
+    isWishlist: Boolean;
+  }
+> = (props) => {
+  const fetcher = useFetcher();
   return (
-    <div className="bg-slate-800 h-full w-full px-4 py-3 rounded-md hover:scale-105 duration-200">
+    <div className="bg-slate-800 h-full w-full px-4 py-3 rounded-md sm:hover:scale-105 duration-200">
       <div className="flex flex-col justify-center h-16 mb-2">
         <h4 className="text-center font-medium text-xl line-clamp-2 tracking-wide">
           {props.title}
@@ -125,10 +185,63 @@ const Movie: React.FC<IMovie> = (props) => {
       <img
         src={`https://image.tmdb.org/t/p/original${props.backdropPath}`}
         alt={props.title}
-        className="w-full"
+        className="w-full select-none"
         loading="lazy"
       />
       <p className="line-clamp-3 m-2 text-gray-300">{props.overview}</p>
+      <fetcher.Form method="post" className="flex justify-center my-3">
+        <input
+          type="hidden"
+          name="_action"
+          value={props.isWishlist ? "delete" : "create"}
+        />
+        <input type="hidden" name="movieId" value={props.id} />
+        <Link to={String(props.id)} className="px-2 py-1 bg-gray-500">
+          More details
+        </Link>
+        <button
+          className={classNames(
+            "px-2 py-1 flex items-center font-medium rounded-md ml-4",
+            props.isWishlist ? "bg-red-600" : "bg-green-600"
+          )}
+        >
+          {props.isWishlist ? (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 inline-block"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </>
+          ) : (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 inline-block"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
+              </svg>
+            </>
+          )}
+        </button>
+      </fetcher.Form>
     </div>
   );
 };
