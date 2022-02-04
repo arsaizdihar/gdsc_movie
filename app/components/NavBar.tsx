@@ -5,7 +5,7 @@ const NavBar = () => {
   const user = useMe();
 
   return (
-    <div className="shadow-gray-800 shadow-sm fixed inset-x-0">
+    <div className="shadow-gray-800 shadow-sm fixed inset-x-0 bg-black z-50">
       <nav className="flex justify-between p-4 gap-x-4 max-w-screen-xl mx-auto items-center">
         <NavLink
           to={"/"}
