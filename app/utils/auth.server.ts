@@ -13,14 +13,19 @@ type RegisterForm = LoginForm & {
 
 export async function register({ name, email, password }: RegisterForm) {
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await db.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
-  });
-  return user;
+  try {
+    const user = await db.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
+    });
+    return user;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
 }
 
 export async function login({ email, password }: LoginForm) {

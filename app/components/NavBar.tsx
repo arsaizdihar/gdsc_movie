@@ -6,6 +6,17 @@ const NavBar = () => {
 
   return (
     <nav className="flex justify-center p-2 gap-x-4 fixed inset-x-0 shadow-gray-800 shadow-sm">
+      <NavLink
+        to={"/"}
+        className={({ isActive }) =>
+          classNames(
+            isActive && "text-white bg-gray-800",
+            "px-2 py-1 rounded-sm"
+          )
+        }
+      >
+        Home
+      </NavLink>
       {user ? (
         <Form action="/logout" method="post">
           <button type="submit" className="button">
