@@ -5,48 +5,48 @@ const NavBar = () => {
   const user = useMe();
 
   return (
-    <nav className="flex justify-center p-2 gap-x-4 fixed inset-x-0 shadow-gray-800 shadow-sm">
-      <NavLink
-        to={"/"}
-        className={({ isActive }) =>
-          classNames(
-            isActive && "text-white bg-gray-800",
-            "px-2 py-1 rounded-sm"
-          )
-        }
-      >
-        Home
-      </NavLink>
-      {user ? (
-        <Form action="/logout" method="post">
-          <button type="submit" className="button">
-            Logout
-          </button>
-        </Form>
-      ) : (
-        <>
-          <NavLink
-            to={"/login"}
-            className={({ isActive }) =>
-              classNames(
-                isActive && "text-white bg-gray-800",
-                "px-2 py-1 rounded-sm"
-              )
-            }
-          >
-            Login
-          </NavLink>
-          <NavLink
-            to={"/register"}
-            className={({ isActive }) =>
-              classNames(isActive && "bg-gray-800", "px-2 py-1 rounded-sm")
-            }
-          >
-            Register
-          </NavLink>
-        </>
-      )}
-    </nav>
+    <div className="shadow-gray-800 shadow-sm fixed inset-x-0">
+      <nav className="flex justify-between p-4 gap-x-4 max-w-screen-xl mx-auto items-center">
+        <NavLink
+          to={"/"}
+          className={({ isActive }) =>
+            classNames(
+              "font-bold tracking-widest text-xl border-b-4 hover:text-gray-200",
+              isActive && "border-red-900",
+              !isActive && "border-transparent"
+            )
+          }
+        >
+          MOVIE
+        </NavLink>
+        <div className="">
+          {user ? (
+            <Form action="/logout" method="post">
+              <button
+                type="submit"
+                className="py-2 px-4 rounded-sm hover:bg-gray-800 font-medium"
+              >
+                Logout
+              </button>
+            </Form>
+          ) : (
+            <>
+              <NavLink
+                to={"/login"}
+                className={({ isActive }) =>
+                  classNames(
+                    isActive && "text-white bg-gray-800",
+                    "py-2 px-4 rounded-sm hover:bg-gray-800 font-medium"
+                  )
+                }
+              >
+                Login
+              </NavLink>
+            </>
+          )}
+        </div>
+      </nav>
+    </div>
   );
 };
 

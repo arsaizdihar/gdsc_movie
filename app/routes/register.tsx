@@ -2,6 +2,7 @@ import React from "react";
 import {
   ActionFunction,
   Form,
+  Link,
   LoaderFunction,
   MetaFunction,
   redirect,
@@ -83,6 +84,12 @@ const Register = () => {
             {error.password}
           </span>
         )}
+        <p className="text-sm w-full">
+          Already have an account?{" "}
+          <Link to="/login" className="font-bold hover:text-gray-700">
+            Login here.
+          </Link>
+        </p>
         <button
           type="submit"
           className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-sm font-medium"
