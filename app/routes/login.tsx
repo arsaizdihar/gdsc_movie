@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   ActionFunction,
   Form,
@@ -7,6 +7,7 @@ import {
   MetaFunction,
   redirect,
   useActionData,
+  useLocation,
   useTransition,
 } from "remix";
 import { getNewJWTCookie, getUserId, login } from "~/utils/auth.server";
@@ -20,6 +21,7 @@ export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const { email, password } = Object.fromEntries(formData);
   const validation = loginSchema.validate({ email, password });
+  const redirectTo = formData.get("redirectTo");
   if (validation.error) {
     return { error: true };
   }
@@ -28,7 +30,9 @@ export const action: ActionFunction = async ({ request }) => {
     return { error: true };
   } else {
     const cookie = await getNewJWTCookie(user);
-    return redirect("/", { headers: { "Set-Cookie": cookie } });
+    return redirect(typeof redirectTo === "string" ? redirectTo : "/", {
+      headers: { "Set-Cookie": cookie },
+    });
   }
 };
 
@@ -43,14 +47,24 @@ export const loader: LoaderFunction = async ({ request }) => {
 const Login = () => {
   const data = useActionData<{ error: boolean }>();
   const transition = useTransition();
+  const location = useLocation();
+  const redirectTo = useRef(
+    new URLSearchParams(location.search).get("redirectTo")
+  );
   return (
-    <main className="h-screen max-w-screen-xl flex items-center justify-center mx-auto">
+    <main className="flex-grow max-w-screen-xl flex items-center justify-center mx-auto">
       <Form
         method="post"
         className="flex flex-col bg-white p-4 w-full max-w-xs gap-y-2 text-black items-center"
         noValidate
+        action={location.pathname + location.search}
       >
         <h1 className="font-medium text-2xl">Login here.</h1>
+        <input
+          type="hidden"
+          name="redirectTo"
+          value={redirectTo.current || undefined}
+        />
         <input
           type="email"
           name="email"

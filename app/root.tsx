@@ -30,9 +30,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   return user;
 };
 
-const Document: React.FC = ({ children }) => {
-  const user = useLoaderData<User | null>();
-
+const Document: React.FC<{ user: User | null }> = ({ children, user }) => {
   return (
     <html lang="en">
       <head>
@@ -51,7 +49,7 @@ const Document: React.FC = ({ children }) => {
         />
         <Links />
       </head>
-      <body className="bg-black text-white font-inter">
+      <body className="bg-black text-white font-inter flex flex-col min-h-screen">
         <AuthProvider user={user}>
           <NavBar />
           {children}
@@ -66,8 +64,10 @@ const Document: React.FC = ({ children }) => {
 };
 
 export default function App() {
+  const user = useLoaderData<User | null>();
+
   return (
-    <Document>
+    <Document user={user}>
       <Outlet />
     </Document>
   );
@@ -76,7 +76,7 @@ export default function App() {
 export function CatchBoundary() {
   const caught = useCatch();
   return (
-    <Document>
+    <Document user={null}>
       <main className="h-screen w-full flex justify-center items-center">
         <h1 className="text-white text-4xl font-medium">
           {caught.status} {caught.statusText}

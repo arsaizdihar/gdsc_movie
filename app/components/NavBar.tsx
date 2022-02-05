@@ -19,16 +19,29 @@ const NavBar = () => {
         >
           MOVIE
         </NavLink>
-        <div className="">
+        <div className="flex">
           {user ? (
-            <Form action="/logout" method="post">
-              <button
-                type="submit"
-                className="py-2 px-4 rounded-sm hover:bg-gray-800 font-medium"
+            <>
+              <NavLink
+                to={"/wishlist"}
+                className={({ isActive }) =>
+                  classNames(
+                    isActive && "text-white bg-gray-800",
+                    "py-2 px-4 rounded-sm hover:bg-gray-800 font-medium"
+                  )
+                }
               >
-                Logout
-              </button>
-            </Form>
+                Wishlist
+              </NavLink>
+              <Form action="/logout" method="post">
+                <button
+                  type="submit"
+                  className="py-2 px-4 rounded-sm hover:bg-gray-800 font-medium"
+                >
+                  Logout
+                </button>
+              </Form>
+            </>
           ) : (
             <>
               <NavLink
