@@ -16,21 +16,33 @@ import Footer from "./components/Footer";
 import NavBar from "./components/NavBar";
 import styles from "./styles/app.css";
 import { getUser } from "./utils/auth.server";
+import { db } from "./utils/db.server";
 
 export function links() {
   return [{ rel: "stylesheet", href: styles }];
 }
 
 export const meta: MetaFunction = () => {
-  return { title: "Movie List" };
+  return {
+    title: "Movie List",
+    description:
+      "A popular movie list and wishlists web that created for GDSC using Remix.",
+  };
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
   const user = await getUser(request);
-  return user;
+  const wishlistCount = user
+    ? await db.wishlist.count({ where: { userId: user.id } })
+    : 0;
+  return { user, wishlistCount };
 };
 
-const Document: React.FC<{ user: User | null }> = ({ children, user }) => {
+const Document: React.FC<{ user: User | null; wishlistCount?: number }> = ({
+  children,
+  user,
+  wishlistCount = 0,
+}) => {
   return (
     <html lang="en">
       <head>
@@ -51,7 +63,7 @@ const Document: React.FC<{ user: User | null }> = ({ children, user }) => {
       </head>
       <body className="bg-black text-white font-inter flex flex-col min-h-screen">
         <AuthProvider user={user}>
-          <NavBar />
+          <NavBar wishlistCount={wishlistCount} />
           {children}
           <Footer />
         </AuthProvider>
@@ -64,10 +76,11 @@ const Document: React.FC<{ user: User | null }> = ({ children, user }) => {
 };
 
 export default function App() {
-  const user = useLoaderData<User | null>();
+  const { user, wishlistCount } =
+    useLoaderData<{ user: User | null; wishlistCount: number }>();
 
   return (
-    <Document user={user}>
+    <Document user={user} wishlistCount={wishlistCount}>
       <Outlet />
     </Document>
   );

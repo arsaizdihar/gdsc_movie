@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { Form, NavLink } from "remix";
 import { useMe } from "./AuthData";
-const NavBar = () => {
+const NavBar = ({ wishlistCount = 0 }: { wishlistCount?: number }) => {
   const user = useMe();
 
   return (
@@ -31,7 +31,12 @@ const NavBar = () => {
                   )
                 }
               >
-                Wishlist
+                Wishlist{" "}
+                {wishlistCount > 0 && (
+                  <span className="bg-yellow-500 rounded-full px-2 py-1 text-black">
+                    {wishlistCount}
+                  </span>
+                )}
               </NavLink>
               <Form action="/logout" method="post">
                 <button

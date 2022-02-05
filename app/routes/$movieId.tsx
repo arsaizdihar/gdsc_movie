@@ -5,6 +5,7 @@ import {
   ActionFunction,
   Form,
   LoaderFunction,
+  MetaFunction,
   redirect,
   useLoaderData,
   useTransition,
@@ -15,6 +16,17 @@ import { db } from "~/utils/db.server";
 type PageData = {
   movie: Movie;
   isWishlist: boolean;
+};
+
+export const meta: MetaFunction = ({ data }) => {
+  const title = data.movie.title + " - Movie List";
+  let description = (data.movie.overview as string).slice(0, 60);
+
+  if (description.length != data.movie.overview.length) description += "...";
+  return {
+    title,
+    description,
+  };
 };
 
 export const loader: LoaderFunction = async ({ request, params }) => {

@@ -37,7 +37,7 @@ const Movie: React.FC<IMovie> = (props) => {
           value={props.isWishlist ? "delete" : "create"}
         />
         <input type="hidden" name="movieId" value={props.id} />
-        <Link to={String(props.id)} className="px-2 py-1 bg-gray-500">
+        <Link to={`/${props.id}`} className="px-2 py-1 bg-gray-500">
           More details
         </Link>
         {user && (
