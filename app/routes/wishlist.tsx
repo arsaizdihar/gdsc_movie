@@ -41,7 +41,7 @@ export const action: ActionFunction = async ({ request }) => {
 export default function Wishlist() {
   const movies = useLoaderData<IMovie[]>();
   return (
-    <main className="pt-20 max-w-screen-xl mx-auto overflow-hidden px-4">
+    <main className="pt-20 max-w-screen-xl mx-auto overflow-hidden px-4 flex-grow">
       <h1 className="text-center text-3xl font-medium tracking-wide mt-12">
         Your Movie Wishlist
       </h1>
