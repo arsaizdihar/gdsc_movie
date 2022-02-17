@@ -5,6 +5,7 @@ module.exports = {
   appDirectory: "app",
   assetsBuildDirectory: "public/build",
   publicPath: "/build/",
-  serverBuildDirectory: "api/_build",
-  ignoredRouteFiles: [".*"]
+  serverBuildPath: "api/_build/index.js",
+  ignoredRouteFiles: [".*"],
+  serverBuildTarget: "vercel",
 };
